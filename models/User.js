@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   gender:            { type: String },
   phoneNumber:       { type: String },
-  preferredLanguage: { type: String },
+  preferredLanguage: [{ type: String }],
   birthdate:         { type: Date },
   profileImageUrl:   { type: String }, 
   appointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Appointment' }]

@@ -1,4 +1,6 @@
 const Doctor = require('../models/Doctor');
+const Appointment = require('../models/Appointment');
+
 const bcrypt = require('bcryptjs');
 
 exports.createDoctor = async (req, res) => {
@@ -135,6 +137,29 @@ exports.getDoctorsByGenderAndLanguage = async (req, res) => {
     }).select('-password');
 
     res.json(doctors);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.getAppointmentsForDoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const appointments = await Appointment.find({ doctor: id })
+      .populate('userId', 'fullName')
+      .sort({ date: 1 })
+      .lean(); // Convert to plain JS objects
+
+    // Transform the response to match frontend expectations
+    const transformedAppointments = appointments.map(appt => ({
+      ...appt,
+      patient: appt.userId,  // Move userId to patient
+      userId: undefined       // Remove userId field
+    }));
+
+    res.status(200).json(transformedAppointments);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

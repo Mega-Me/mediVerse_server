@@ -43,3 +43,17 @@ exports.createAppointment = async (req, res) => {
   }
 };
 
+exports.getAppointmentsForDoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const appointments = await Appointment.find({ doctor: id })
+      .populate('userId', 'fullName') // ✅ this pulls patient info
+      .sort({ date: 1 });
+
+    res.status(200).json(appointments);
+  } catch (err) {
+    console.error('Doctor appointment fetch error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
