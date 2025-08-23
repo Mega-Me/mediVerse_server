@@ -11,6 +11,7 @@ const authRoutes = require('./routes/authRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 
+//this is an express server
 const app = express();
 
 // CORS Middleware
