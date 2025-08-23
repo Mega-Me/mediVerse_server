@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediVerse Admin Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-heartbeat"></i> MediVerse</h2>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="#" class="active" data-section="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a></li>
+            <li><a href="#" data-section="appointments">
+                <i class="fas fa-calendar-check"></i> Appointments
+            </a></li>
+            <li><a href="#" data-section="doctors">
+                <i class="fas fa-user-md"></i> Doctors
+            </a></li>
+            <li><a href="#" data-section="patients">
+                <i class="fas fa-user-injured"></i> Patients
+            </a></li>
+            <li><a href="#" data-section="earnings">
+                <i class="fas fa-dollar-sign"></i> Earnings
+            </a></li>
+            <li><a href="#" data-section="settings">
+                <i class="fas fa-cog"></i> Settings
+            </a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="header">
+                <h1>Dashboard Overview</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="refreshStats()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card success">
+                    <div class="stat-value" id="totalAppointments">0</div>
+                    <div class="stat-label">Total Appointments</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 12% from last month
+                    </div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-value" id="totalDoctors">0</div>
+                    <div class="stat-label">Active Doctors</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 5% from last month
+                    </div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-value" id="totalPatients">0</div>
+                    <div class="stat-label">Total Patients</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 8% from last month
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalEarnings">$0</div>
+                    <div class="stat-label">Total Earnings</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 15% from last month
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>Recent Appointments</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table" id="recentAppointmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Date & Time</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Payment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentAppointmentsBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Appointments Section -->
+        <section id="appointments" class="content-section">
+            <div class="header">
+                <h1>Appointment Management</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="exportAppointments()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>Filters</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Payment Status</label>
+                            <select class="form-select" id="paymentFilter">
+                                <option value="">All Payments</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Failed">Failed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date Range</label>
+                            <input type="date" class="form-control" id="dateFilter">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary" onclick="filterAppointments()">
+                                <i class="fas fa-filter"></i> Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appointments Table -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>All Appointments</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table" id="appointmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Date & Time</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Payment</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentsBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Doctors Section -->
+        <section id="doctors" class="content-section">
+            <div class="header">
+                <h1>Doctor Management</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showAddDoctorModal()">
+                        <i class="fas fa-plus"></i> Add Doctor
+                    </button>
+                </div>
+            </div>
+
+            <!-- Doctor Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDoctorSessions">0</div>
+                    <div class="stat-label">Total Sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDoctorHours">0h</div>
+                    <div class="stat-label">Total Hours</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDoctorEarnings">$0</div>
+                    <div class="stat-label">Total Earnings</div>
+                </div>
+            </div>
+
+            <!-- Doctors Table -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>All Doctors</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table" id="doctorsTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Specialization</th>
+                                    <th>Sessions</th>
+                                    <th>Hours</th>
+                                    <th>Earnings</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="doctorsBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Patients Section -->
+        <section id="patients" class="content-section">
+            <div class="header">
+                <h1>Patient Management</h1>
+            </div>
+
+            <!-- Patient Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPatientSessions">0</div>
+                    <div class="stat-label">Total Sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPatientHours">0h</div>
+                    <div class="stat-label">Total Hours</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPatientSpent">$0</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+            </div>
+
+            <!-- Patients Table -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>All Patients</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table" id="patientsTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Sessions</th>
+                                    <th>Hours</th>
+                                    <th>Total Spent</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patientsBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Earnings Section -->
+        <section id="earnings" class="content-section">
+            <div class="header">
+                <h1>Earnings & Analytics</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="exportEarnings()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Earnings Overview -->
+            <div class="stats-grid">
+                <div class="stat-card success">
+                    <div class="stat-value" id="monthlyEarnings">$0</div>
+                    <div class="stat-label">This Month</div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-value" id="weeklyEarnings">$0</div>
+                    <div class="stat-label">This Week</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-value" id="dailyEarnings">$0</div>
+                    <div class="stat-label">Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgSessionValue">$0</div>
+                    <div class="stat-label">Avg Session Value</div>
+                </div>
+            </div>
+
+            <!-- Earnings Chart -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>Earnings Trend</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="earningsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Performers -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>Top Performing Doctors</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table" id="topDoctorsTable">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Doctor</th>
+                                    <th>Sessions</th>
+                                    <th>Hours</th>
+                                    <th>Earnings</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topDoctorsBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings" class="content-section">
+            <div class="header">
+                <h1>System Settings</h1>
+            </div>
+
+            <!-- Pricing Settings -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>Pricing Configuration</h3>
+                </div>
+                <div class="card-body">
+                    <form id="pricingForm">
+                        <div class="form-group">
+                            <label class="form-label">Default Hourly Rate ($)</label>
+                            <input type="number" class="form-control" id="defaultHourlyRate" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Platform Commission (%)</label>
+                            <input type="number" class="form-control" id="platformCommission" step="0.01" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Minimum Session Duration (minutes)</label>
+                            <input type="number" class="form-control" id="minSessionDuration" min="15" step="15">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- System Information -->
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>System Information</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                        <div>
+                            <strong>Server Version:</strong> 1.0.0
+                        </div>
+                        <div>
+                            <strong>Database:</strong> MongoDB
+                        </div>
+                        <div>
+                            <strong>Last Backup:</strong> <span id="lastBackup">Never</span>
+                        </div>
+                        <div>
+                            <strong>System Status:</strong> <span class="status-badge status-approved">Online</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <!-- Appointment Details Modal -->
+    <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Appointment Details</h3>
+                <span class="close" onclick="closeModal('appointmentModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="appointmentForm">
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="appointmentStatus">
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payment Status</label>
+                        <select class="form-select" id="paymentStatus">
+                            <option value="Pending">Pending</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Failed">Failed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" id="appointmentNotes" rows="3"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('appointmentModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Doctor Modal -->
+    <div id="addDoctorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Doctor</h3>
+                <span class="close" onclick="closeModal('addDoctorModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addDoctorForm">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="doctorName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="doctorEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" class="form-control" id="doctorSpecialization" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hourly Rate ($)</label>
+                        <input type="number" class="form-control" id="doctorHourlyRate" step="0.01" min="0" required>
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('addDoctorModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Doctor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

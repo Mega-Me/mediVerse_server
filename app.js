@@ -95,6 +95,7 @@ wss.on('connection', (ws, req) => {
       cleanupConnection(currentRoom, currentUser);
     }
   });
+  
 
   ws.on('error', (error) => {
     console.error(`🔥 WebSocket error from ${clientIp}:`, error);
@@ -110,6 +111,12 @@ function handleJoin(ws, roomId, userId) {
 
   const room = rooms.get(roomId);
   
+  // Check if user already exists (reconnection)
+  if (room.has(userId)) {
+    console.log(`🔄 User ${userId} reconnecting to room ${roomId}`);
+    room.delete(userId); // Remove old connection
+  }
+  
   // Check room capacity
   if (room.size >= 2) {
     ws.send(JSON.stringify({
@@ -122,38 +129,66 @@ function handleJoin(ws, roomId, userId) {
 
   // Add user to room
   room.set(userId, ws);
-  console.log(`👤 ${userId} joined room ${roomId}`);
+  console.log(`👤 ${userId} joined room ${roomId} (${room.size}/${2} users)`);
 
-  // Notify all users in room
+  // Notify all users in room about current status
   const usersInRoom = Array.from(room.keys());
+  console.log(`📊 Room ${roomId} users: ${usersInRoom.join(', ')}`);
   
-  // Notify the new user about existing users
-  ws.send(JSON.stringify({
-    type: 'room-status',
-    users: usersInRoom
-  }));
-  
-  // Notify other users about the new user
+  // Send room status to ALL users in the room
   room.forEach((client, id) => {
-    if (id !== userId) {
-      client.send(JSON.stringify({
-        type: 'user-joined',
-        userId
-      }));
-    }
+    client.send(JSON.stringify({
+      type: 'room-status',
+      users: usersInRoom,
+      roomId: roomId
+    }));
   });
+  
+  // If room now has 2 users, initiate the call setup
+  if (room.size === 2) {
+    console.log(`🚀 Room ${roomId} is ready for call - 2 users connected`);
+    room.forEach((client, id) => {
+      client.send(JSON.stringify({
+        type: 'room-ready',
+        users: usersInRoom,
+        roomId: roomId
+      }));
+    });
+  }
 }
 
 function forwardMessage(data) {
   const room = rooms.get(data.roomId);
-  if (!room) return console.log(`❌ Room ${data.roomId} not found`);
+  if (!room) {
+    console.log(`❌ Room ${data.roomId} not found for ${data.type}`);
+    return;
+  }
+  
+  // If no specific target, forward to all other users in room
+  if (!data.targetUserId) {
+    const senderId = data.userId;
+    room.forEach((client, id) => {
+      if (id !== senderId) {
+        console.log(`↪️ Broadcasting ${data.type} from ${senderId} to ${id}`);
+        client.send(JSON.stringify({
+          ...data,
+          userId: senderId
+        }));
+      }
+    });
+    return;
+  }
+  
+  // Forward to specific target
   const target = room.get(data.targetUserId);
-  if (!target) return console.log(`❌ Target ${data.targetUserId} not in room`);
+  if (!target) {
+    console.log(`❌ Target ${data.targetUserId} not found in room ${data.roomId}`);
+    return;
+  }
 
   const payload = {
     ...data,
-    userId: data.userId,         // ensure sender id is present
-    targetUserId: data.targetUserId
+    userId: data.userId || 'unknown'
   };
   console.log(`↪️ Forwarding ${data.type} from ${data.userId} to ${data.targetUserId}`);
   target.send(JSON.stringify(payload));
@@ -163,7 +198,8 @@ function forwardMessage(data) {
 
 
 
-function cleanupConnection(roomId, userId) {  const room = rooms.get(roomId);
+function cleanupConnection(roomId, userId) {
+  const room = rooms.get(roomId);
   if (!room) return;
 
   room.delete(userId);
